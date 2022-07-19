@@ -68,15 +68,15 @@ def iterate_grid(grid):
             i += 1
 
 
-class Photo:
+class PhotoToGlyphs:
 
-    directory = 'photos/'
+    source = 'photos/'
     debug_directory = 'debug/photo/'
     glyphs_directory = 'glyphs/'
 
     def __init__(self, image_path, template, debug=False):
         self.template = template
-        self.image = cv2.imread(Photo.directory + image_path)
+        self.image = cv2.imread(PhotoToGlyphs.source + image_path)
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         self.binary = binarize_image(self.gray)
         self.contours_boxes = get_letter_contours(self.binary)
@@ -88,40 +88,40 @@ class Photo:
             self.debug()
 
     def debug(self):
-        os.makedirs(Photo.debug_directory, exist_ok=True)
+        os.makedirs(PhotoToGlyphs.debug_directory, exist_ok=True)
 
         # Save binary image
-        cv2.imwrite(Photo.debug_directory + 'binary.png', self.binary)
+        cv2.imwrite(PhotoToGlyphs.debug_directory + 'binary.png', self.binary)
 
         # Save first contours boxes drawn on photo
         image = self.image.copy()
         for (x, y, w, h) in self.contours_boxes:
             image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
-        cv2.imwrite(Photo.debug_directory + 'contours_boxes.png', image)
+        cv2.imwrite(PhotoToGlyphs.debug_directory + 'contours_boxes.png', image)
 
         # Save refined letter contours
         image = self.image.copy()
         for (x, y, w, h) in self.letters_contours:
             image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        cv2.imwrite(Photo.debug_directory + 'letters_contours.png', image)
+        cv2.imwrite(PhotoToGlyphs.debug_directory + 'letters_contours.png', image)
 
     def save_letters(self):
-        os.makedirs(Photo.glyphs_directory, exist_ok=True)
+        os.makedirs(PhotoToGlyphs.glyphs_directory, exist_ok=True)
 
         repetition = dict()
         for i, (x, y, w, h) in iterate_grid(self.letters_grid):
             letter_img = self.image[y:y + h, x:x + w]
             # Create directory for this glyph
             glyph = str(ord(self.template[i]))
-            os.makedirs(Photo.glyphs_directory + glyph, exist_ok=True)
+            os.makedirs(PhotoToGlyphs.glyphs_directory + glyph, exist_ok=True)
             # Saving the letter
             repetition[glyph] = repetition.get(glyph, 0) + 1
             # TODO Enable repetition!
             # cv2.imwrite(Photo.glyphs_directory + glyph + f'/{glyph}_{repetition[glyph]}.png', letter_img)
-            cv2.imwrite(Photo.glyphs_directory + glyph + f'/{glyph}.png', letter_img)
+            cv2.imwrite(PhotoToGlyphs.glyphs_directory + glyph + f'/{glyph}.png', letter_img)
 
 
 if __name__ == '__main__':
-    for file in os.listdir(Photo.directory):
+    for file in os.listdir(PhotoToGlyphs.source):
         template = 'ABCDEFGHIJKLMNOABCDEFGHIJKLMNOABCDEFGHIJKLMNO' + 'PQRSTUVWXYZPQRSTUVWXYZPQRSTUVWXYZ' + 'abcdefghijklmnopqrabcdefghijklmnopqrstabcdefghijklmnopqrustuvwxyz'
-        Photo(file, template, debug=True)
+        PhotoToGlyphs(file, template, debug=True)
